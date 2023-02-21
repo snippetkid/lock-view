@@ -1,0 +1,25 @@
+name: Get Axios package.lock size
+on:
+  schedule:
+    - cron: 15 * * * *
+
+jobs:
+  get_axios_package_lock_size:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: octokit/graphql-action@v2.x
+        id: get_package_lock_size
+        with:
+          query: |
+            query release($owner:String!,$repo:String!) {
+              repository(owner:'axios',name:'axios') {
+                object(expression: 'main:yarn.lock') {
+                  ... on Blob {
+                    byteSize
+                  }
+                }
+              }
+            }
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: "echo 'latest release: ${{ steps.get_package_lock_size.outputs.data }}'"
